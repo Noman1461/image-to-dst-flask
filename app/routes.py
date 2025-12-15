@@ -18,6 +18,14 @@ def index():
     if request.method == "POST":
         file = request.files.get("image")
 
+        # DEBUG: Print file info
+        print(f"DEBUG: File received: {file}")
+        if file:
+            print(f"DEBUG: Filename: {file.filename}")
+            print(f"DEBUG: Content type: {file.content_type}")
+            print(f"DEBUG: Allowed file check: {allowed_file(file.filename)}")
+        
+
         if not file or not allowed_file(file.filename):
             return "Invalid file", 400
 

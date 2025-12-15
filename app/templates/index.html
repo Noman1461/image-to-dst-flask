@@ -1,13 +1,334 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" class="h-full">
 <head>
-    <title>Image to DST</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Intelligent Stitch | PNG/JPG to DST Converter</title>
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Inter Font (clean, professional) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Favicon placeholder -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧵</text></svg>">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Custom file input styling */
+        .file-input {
+            position: absolute;
+            width: 0.1px;
+            height: 0.1px;
+            opacity: 0;
+            overflow: hidden;
+            z-index: -1;
+        }
+        
+        .file-label {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .file-label:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* Drag and drop area */
+        .drop-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 0.75rem;
+            transition: all 0.2s ease;
+        }
+        
+        .drop-area.drag-over {
+            border-color: #4f46e5;
+            background-color: #f5f3ff;
+        }
+        
+        /* Focus styles for accessibility */
+        .focus-visible {
+            outline: 2px solid #4f46e5;
+            outline-offset: 2px;
+        }
+    </style>
 </head>
-<body>
-    <h2>Upload Image</h2>
-    <form method="POST" enctype="multipart/form-data">
-        <input type="file" name="image" accept=".png,.jpg,.jpeg" required />
-        <button type="submit">Convert</button>
-    </form>
+<body class="h-full bg-gray-50 flex flex-col">
+    <div class="min-h-screen flex flex-col items-center justify-center px-4 py-12">
+        <!-- Main Card -->
+        <div class="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-8 md:p-10">
+            <!-- Header -->
+            <div class="text-center mb-10">
+                <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+                    The Intelligent Stitch
+                </h1>
+                <p class="text-gray-600 text-lg">
+                    Convert PNG/JPG images to embroidery DST files with AI-powered processing
+                </p>
+            </div>
+            
+            <!-- Upload Section -->
+            <div class="mb-10">
+                <div class="drop-area p-8 text-center" id="dropArea">
+                    <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                        Upload your image
+                    </h3>
+                    <p class="text-gray-500 mb-6 max-w-md mx-auto">
+                        Drag and drop your image file here, or click to browse
+                    </p>
+                    
+                    <!-- File Input (hidden) -->
+                    <input class="file-input" type="file" id="fileInput" name="image" accept=".png,.jpg,.jpeg" required>
+                    <label for="fileInput" class="file-label inline-block bg-indigo-600 text-white font-medium py-3 px-8 rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        Choose Image File
+                    </label>
+                    
+                    <!-- Selected File Display -->
+                    <div id="fileDisplay" class="mt-6 hidden">
+                        <div class="inline-flex items-center bg-gray-100 rounded-lg px-4 py-3">
+                            <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span id="fileName" class="text-gray-800 font-medium"></span>
+                            <button type="button" id="removeFile" class="ml-3 text-gray-500 hover:text-gray-700">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Instructions -->
+                <div class="text-center text-gray-500 text-sm">
+                    <p>Supported formats: PNG, JPG, JPEG • Max file size: 10MB</p>
+                </div>
+            </div>
+            
+            <!-- Convert Button -->
+            <form action="/" method="POST" enctype="multipart/form-data" id="uploadForm">
+                <button type="submit" id="convertBtn" class="w-full bg-gray-900 text-white font-semibold py-4 px-6 rounded-lg hover:bg-black transition duration-200 focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Convert to DST File
+                </button>
+            </form>
+            
+            <!-- How it works section -->
+            <div class="mt-12 pt-8 border-t border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">How it works</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="text-center">
+                        <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-lg mx-auto mb-3">1</div>
+                        <h4 class="font-medium text-gray-900 mb-1">Upload Image</h4>
+                        <p class="text-gray-600 text-sm">Upload a clear PNG or JPG image with distinct edges</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-lg mx-auto mb-3">2</div>
+                        <h4 class="font-medium text-gray-900 mb-1">AI Processing</h4>
+                        <p class="text-gray-600 text-sm">Our algorithm extracts contours and converts to stitch paths</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-lg mx-auto mb-3">3</div>
+                        <h4 class="font-medium text-gray-900 mb-1">Download DST</h4>
+                        <p class="text-gray-600 text-sm">Get industry-standard DST file ready for embroidery machines</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="mt-10 text-center text-gray-500 text-sm">
+            <p>The Intelligent Stitch • Professional image-to-embroidery conversion</p>
+            <p class="mt-1">For best results, use high-contrast images with clear outlines</p>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const fileInput = document.getElementById('fileInput');
+        const fileDisplay = document.getElementById('fileDisplay');
+        const fileName = document.getElementById('fileName');
+        const removeFileBtn = document.getElementById('removeFile');
+        const dropArea = document.getElementById('dropArea');
+        const convertBtn = document.getElementById('convertBtn');
+        const uploadForm = document.getElementById('uploadForm');
+
+        // File selection handler
+        fileInput.addEventListener('change', function(e) {
+            if (this.files.length > 0) {
+                const file = this.files[0];
+                updateFileDisplay(file.name);
+                
+                // Validate file size (10MB = 10 * 1024 * 1024 bytes)
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('File size exceeds 10MB limit. Please choose a smaller file.');
+                    resetFileInput();
+                    return;
+                }
+                
+                // Validate file type
+                const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+                if (!validTypes.includes(file.type)) {
+                    alert('Please select a PNG or JPG image file.');
+                    resetFileInput();
+                    return;
+                }
+            }
+        });
+
+        // Remove file handler
+        removeFileBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            resetFileInput();
+        });
+
+        // Drag and drop functionality
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            dropArea.classList.add('drag-over');
+        }
+
+        function unhighlight() {
+            dropArea.classList.remove('drag-over');
+        }
+
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                const file = files[0];
+                
+                // Validate file type
+                const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+                if (!validTypes.includes(file.type)) {
+                    alert('Please drop a PNG or JPG image file.');
+                    return;
+                }
+                
+                // Validate file size
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('File size exceeds 10MB limit. Please choose a smaller file.');
+                    return;
+                }
+                
+                // Create a DataTransfer object to set the file
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files;
+                
+                updateFileDisplay(file.name);
+                
+                // Trigger change event for any other listeners
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        }
+
+        // Form submission handler
+        // Form submission handler - UPDATED for better error handling
+        uploadForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!fileInput.files.length) {
+                alert('Please select an image file first.');
+                fileInput.focus();
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            
+            // Double-check validation
+            const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+            if (!validTypes.includes(file.type)) {
+                alert('File must be PNG or JPG format.');
+                return;
+            }
+            
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File size exceeds 10MB limit.');
+                return;
+            }
+            
+            // Disable button during submission
+            convertBtn.disabled = true;
+            convertBtn.textContent = 'Processing...';
+            
+            try {
+                const formData = new FormData();
+                formData.append('image', file);
+                
+                const response = await fetch('/', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    // Get filename from Content-Disposition header or use default
+                    const contentDisposition = response.headers.get('Content-Disposition');
+                    let filename = 'embroidery.dst';
+                    
+                    if (contentDisposition) {
+                        const match = contentDisposition.match(/filename="(.+)"/);
+                        if (match) filename = match[1];
+                    }
+                    
+                    // Create download link
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    
+                    // Reset form after successful download
+                    resetFileInput();
+                    
+                } else {
+                    // Handle error response
+                    const errorText = await response.text();
+                    alert(`Error: ${errorText || 'Conversion failed'}`);
+                }
+                
+            } catch (error) {
+                alert(`Network error: ${error.message}`);
+            } finally {
+                // Re-enable button
+                convertBtn.disabled = false;
+                convertBtn.textContent = 'Convert to DST File';
+            }
+        });
+
+    </script>
 </body>
 </html>
