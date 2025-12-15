@@ -6,3 +6,4 @@ opencv-python==4.8.0.74
 scikit-image==0.21.0
 pyembroidery==1.5.1
 python-dotenv==1.2.1
+gunicorn==23.0.0
