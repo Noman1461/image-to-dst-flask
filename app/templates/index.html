@@ -8,21 +8,18 @@
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Inter Font (clean, professional) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <!-- Inter Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Favicon placeholder -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧵</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
         }
         
-        /* Custom file input styling */
         .file-input {
             position: absolute;
             width: 0.1px;
@@ -38,10 +35,10 @@
         }
         
         .file-label:hover {
-            transform: translateY(-2px);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
         }
         
-        /* Drag and drop area */
         .drop-area {
             border: 2px dashed #d1d5db;
             border-radius: 0.75rem;
@@ -50,106 +47,137 @@
         
         .drop-area.drag-over {
             border-color: #4f46e5;
-            background-color: #f5f3ff;
+            background-color: rgba(79, 70, 229, 0.05);
         }
         
-        /* Focus styles for accessibility */
-        .focus-visible {
-            outline: 2px solid #4f46e5;
-            outline-offset: 2px;
+        .shadow-glow {
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        }
+        
+        /* Debug alert style */
+        .debug-alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 400px;
         }
     </style>
 </head>
-<body class="h-full bg-gray-50 flex flex-col">
-    <div class="min-h-screen flex flex-col items-center justify-center px-4 py-12">
-        <!-- Main Card -->
-        <div class="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-8 md:p-10">
-            <!-- Header -->
-            <div class="text-center mb-10">
-                <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-                    The Intelligent Stitch
-                </h1>
-                <p class="text-gray-600 text-lg">
-                    Convert PNG/JPG images to embroidery DST files with AI-powered processing
+<body class="h-full">
+    <!-- Debug Alert (hidden by default) -->
+    <div id="debugAlert" class="debug-alert hidden">
+        <div class="bg-red-50 border-l-4 border-red-500 p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p id="debugMessage" class="text-sm text-red-700"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="min-h-screen flex flex-col items-center justify-center px-4 py-6 sm:py-8">
+        <!-- Main Compact Card -->
+        <div class="w-full max-w-xl bg-white rounded-2xl shadow-glow p-6 sm:p-8">
+            <!-- Prominent Logo/Header -->
+            <div class="text-center mb-8">
+                <div class="flex flex-col items-center mb-4">
+                    <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg mb-4">
+                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900">
+                        THE INTELLIGENT STITCH
+                    </h1>
+                </div>
+                <p class="text-gray-600 text-lg font-medium">
+                    PNG/JPG → Embroidery DST Converter
                 </p>
+                <div class="mt-2 h-1 w-24 bg-gradient-to-r from-indigo-400 to-purple-500 mx-auto rounded-full"></div>
             </div>
             
-            <!-- Upload Section -->
-            <div class="mb-10">
-                <div class="drop-area p-8 text-center" id="dropArea">
-                    <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                    </svg>
-                    
-                    <h3 class="text-xl font-semibold text-gray-800 mb-2">
-                        Upload your image
-                    </h3>
-                    <p class="text-gray-500 mb-6 max-w-md mx-auto">
-                        Drag and drop your image file here, or click to browse
-                    </p>
-                    
-                    <!-- File Input (hidden) -->
-                    <input class="file-input" type="file" id="fileInput" name="image" accept=".png,.jpg,.jpeg" required>
-                    <label for="fileInput" class="file-label inline-block bg-indigo-600 text-white font-medium py-3 px-8 rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                        Choose Image File
-                    </label>
-                    
-                    <!-- Selected File Display -->
-                    <div id="fileDisplay" class="mt-6 hidden">
-                        <div class="inline-flex items-center bg-gray-100 rounded-lg px-4 py-3">
-                            <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            <span id="fileName" class="text-gray-800 font-medium"></span>
-                            <button type="button" id="removeFile" class="ml-3 text-gray-500 hover:text-gray-700">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            <!-- Form - IMPORTANT: Using traditional form submission -->
+            <form action="/" method="POST" enctype="multipart/form-data" id="uploadForm">
+                <!-- Compact Upload Section -->
+                <div class="mb-8">
+                    <div class="drop-area p-6 text-center" id="dropArea">
+                        <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                            Upload Image
+                        </h3>
+                        <p class="text-gray-500 text-sm mb-4">
+                            Drag & drop or click to browse
+                        </p>
+                        
+                        <!-- File Input - Now inside the form -->
+                        <input class="file-input" type="file" id="fileInput" name="image" accept=".png,.jpg,.jpeg" required>
+                        <label for="fileInput" class="file-label inline-block bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold py-2.5 px-6 rounded-lg hover:from-indigo-700 hover:to-indigo-800 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-sm">
+                            Choose Image
+                        </label>
+                        
+                        <!-- Selected File Display -->
+                        <div id="fileDisplay" class="mt-4 hidden">
+                            <div class="inline-flex items-center bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                                <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                            </button>
+                                <span id="fileName" class="text-gray-800 font-medium text-sm"></span>
+                                <button type="button" id="removeFile" class="ml-2 text-gray-400 hover:text-gray-600">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
+                    </div>
+                    
+                    <!-- Compact Instructions -->
+                    <div class="text-center text-gray-500 text-xs mt-3">
+                        <p>Supported: PNG, JPG • Max: 10MB</p>
                     </div>
                 </div>
                 
-                <!-- Instructions -->
-                <div class="text-center text-gray-500 text-sm">
-                    <p>Supported formats: PNG, JPG, JPEG • Max file size: 10MB</p>
-                </div>
-            </div>
-            
-            <!-- Convert Button -->
-            <form action="/" method="POST" enctype="multipart/form-data" id="uploadForm">
-                <button type="submit" id="convertBtn" class="w-full bg-gray-900 text-white font-semibold py-4 px-6 rounded-lg hover:bg-black transition duration-200 focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                    Convert to DST File
+                <!-- Convert Button -->
+                <button type="submit" id="convertBtn" class="w-full bg-gradient-to-r from-gray-900 to-black text-white font-bold py-3 px-6 rounded-lg hover:from-black hover:to-gray-900 transition-all duration-200 focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm tracking-wide uppercase">
+                    CONVERT TO DST
                 </button>
             </form>
             
-            <!-- How it works section -->
-            <div class="mt-12 pt-8 border-t border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">How it works</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Compact How it works -->
+            <div class="mt-8 pt-6 border-t border-gray-100">
+                <h3 class="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">How It Works</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="text-center">
-                        <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-lg mx-auto mb-3">1</div>
-                        <h4 class="font-medium text-gray-900 mb-1">Upload Image</h4>
-                        <p class="text-gray-600 text-sm">Upload a clear PNG or JPG image with distinct edges</p>
+                        <div class="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-sm mx-auto mb-2">1</div>
+                        <h4 class="font-medium text-gray-900 text-sm">Upload</h4>
+                        <p class="text-gray-500 text-xs mt-1">PNG or JPG image</p>
                     </div>
                     <div class="text-center">
-                        <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-lg mx-auto mb-3">2</div>
-                        <h4 class="font-medium text-gray-900 mb-1">AI Processing</h4>
-                        <p class="text-gray-600 text-sm">Our algorithm extracts contours and converts to stitch paths</p>
+                        <div class="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-sm mx-auto mb-2">2</div>
+                        <h4 class="font-medium text-gray-900 text-sm">Process</h4>
+                        <p class="text-gray-500 text-xs mt-1">AI extracts contours</p>
                     </div>
                     <div class="text-center">
-                        <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-lg mx-auto mb-3">3</div>
-                        <h4 class="font-medium text-gray-900 mb-1">Download DST</h4>
-                        <p class="text-gray-600 text-sm">Get industry-standard DST file ready for embroidery machines</p>
+                        <div class="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-sm mx-auto mb-2">3</div>
+                        <h4 class="font-medium text-gray-900 text-sm">Download</h4>
+                        <p class="text-gray-500 text-xs mt-1">Ready-to-use DST</p>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Footer -->
-        <div class="mt-10 text-center text-gray-500 text-sm">
-            <p>The Intelligent Stitch • Professional image-to-embroidery conversion</p>
-            <p class="mt-1">For best results, use high-contrast images with clear outlines</p>
+        <!-- Compact Footer -->
+        <div class="mt-6 text-center text-gray-500 text-xs">
+            <p>Professional Image-to-Embroidery Conversion</p>
         </div>
     </div>
 
@@ -162,173 +190,120 @@
         const dropArea = document.getElementById('dropArea');
         const convertBtn = document.getElementById('convertBtn');
         const uploadForm = document.getElementById('uploadForm');
+        const debugAlert = document.getElementById('debugAlert');
+        const debugMessage = document.getElementById('debugMessage');
 
-        // File selection handler
+        // Helper function to show debug message
+        function showDebugMessage(message) {
+            debugMessage.textContent = message;
+            debugAlert.classList.remove('hidden');
+            setTimeout(() => {
+                debugAlert.classList.add('hidden');
+            }, 5000);
+        }
+
+        // File selection handler - SIMPLIFIED
         fileInput.addEventListener('change', function(e) {
             if (this.files.length > 0) {
                 const file = this.files[0];
-                updateFileDisplay(file.name);
                 
-                // Validate file size (10MB = 10 * 1024 * 1024 bytes)
-                if (file.size > 10 * 1024 * 1024) {
-                    alert('File size exceeds 10MB limit. Please choose a smaller file.');
-                    resetFileInput();
-                    return;
-                }
+                // Show filename
+                fileName.textContent = file.name.length > 30 ? 
+                    file.name.substring(0, 27) + '...' : file.name;
+                fileDisplay.classList.remove('hidden');
+                convertBtn.disabled = false;
                 
-                // Validate file type
-                const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
-                if (!validTypes.includes(file.type)) {
-                    alert('Please select a PNG or JPG image file.');
-                    resetFileInput();
-                    return;
-                }
+                // Log for debugging
+                console.log('File selected:', {
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    lastModified: file.lastModified
+                });
             }
         });
 
         // Remove file handler
         removeFileBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            resetFileInput();
+            fileInput.value = '';
+            fileDisplay.classList.add('hidden');
+            convertBtn.disabled = true;
         });
 
-        // Drag and drop functionality
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, preventDefaults, false);
-        });
-
-        function preventDefaults(e) {
+        // Simple drag and drop
+        dropArea.addEventListener('dragover', (e) => {
             e.preventDefault();
-            e.stopPropagation();
-        }
-
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropArea.addEventListener(eventName, highlight, false);
-        });
-
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, unhighlight, false);
-        });
-
-        function highlight() {
             dropArea.classList.add('drag-over');
-        }
+        });
 
-        function unhighlight() {
+        dropArea.addEventListener('dragleave', () => {
             dropArea.classList.remove('drag-over');
-        }
+        });
 
-        dropArea.addEventListener('drop', handleDrop, false);
-
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('drag-over');
             
-            if (files.length > 0) {
-                const file = files[0];
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                const file = fileInput.files[0];
                 
-                // Validate file type
-                const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
-                if (!validTypes.includes(file.type)) {
-                    alert('Please drop a PNG or JPG image file.');
-                    return;
-                }
+                fileName.textContent = file.name.length > 30 ? 
+                    file.name.substring(0, 27) + '...' : file.name;
+                fileDisplay.classList.remove('hidden');
+                convertBtn.disabled = false;
                 
-                // Validate file size
-                if (file.size > 10 * 1024 * 1024) {
-                    alert('File size exceeds 10MB limit. Please choose a smaller file.');
-                    return;
-                }
-                
-                // Create a DataTransfer object to set the file
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(file);
-                fileInput.files = dataTransfer.files;
-                
-                updateFileDisplay(file.name);
-                
-                // Trigger change event for any other listeners
+                // Trigger change event
                 fileInput.dispatchEvent(new Event('change'));
             }
-        }
+        });
 
-        // Form submission handler
-        // Form submission handler - UPDATED for better error handling
-        uploadForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
+        // Form submission - VERY SIMPLE validation
+        uploadForm.addEventListener('submit', function(e) {
             if (!fileInput.files.length) {
-                alert('Please select an image file first.');
-                fileInput.focus();
+                e.preventDefault();
+                showDebugMessage('Please select an image file first.');
                 return;
             }
             
             const file = fileInput.files[0];
             
-            // Double-check validation
+            // Basic validation
             const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
             if (!validTypes.includes(file.type)) {
-                alert('File must be PNG or JPG format.');
+                e.preventDefault();
+                showDebugMessage('Please select a PNG or JPG image file.');
                 return;
             }
             
             if (file.size > 10 * 1024 * 1024) {
-                alert('File size exceeds 10MB limit.');
+                e.preventDefault();
+                showDebugMessage('File size exceeds 10MB limit.');
                 return;
             }
             
-            // Disable button during submission
+            // Show loading state
             convertBtn.disabled = true;
-            convertBtn.textContent = 'Processing...';
+            convertBtn.textContent = 'PROCESSING...';
             
-            try {
-                const formData = new FormData();
-                formData.append('image', file);
-                
-                const response = await fetch('/', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (response.ok) {
-                    // Get filename from Content-Disposition header or use default
-                    const contentDisposition = response.headers.get('Content-Disposition');
-                    let filename = 'embroidery.dst';
-                    
-                    if (contentDisposition) {
-                        const match = contentDisposition.match(/filename="(.+)"/);
-                        if (match) filename = match[1];
-                    }
-                    
-                    // Create download link
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = filename;
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    document.body.removeChild(a);
-                    
-                    // Reset form after successful download
-                    resetFileInput();
-                    
-                } else {
-                    // Handle error response
-                    const errorText = await response.text();
-                    alert(`Error: ${errorText || 'Conversion failed'}`);
-                }
-                
-            } catch (error) {
-                alert(`Network error: ${error.message}`);
-            } finally {
-                // Re-enable button
-                convertBtn.disabled = false;
-                convertBtn.textContent = 'Convert to DST File';
+            // The form will now submit normally to Flask
+        });
+
+        // Click drop area to trigger file input
+        dropArea.addEventListener('click', function(e) {
+            if (e.target === dropArea || e.target.classList.contains('drop-area')) {
+                fileInput.click();
             }
         });
 
+        // Initialize button state
+        convertBtn.disabled = true;
+        
+        // Debug: Check form structure
+        console.log('Form method:', uploadForm.method);
+        console.log('Form action:', uploadForm.action);
+        console.log('Form enctype:', uploadForm.enctype);
     </script>
 </body>
 </html>
