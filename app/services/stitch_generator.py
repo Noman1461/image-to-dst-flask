@@ -12,18 +12,25 @@ def extract_contours(binary_image):
 
     return contours
 
-def contours_to_stitches(contours, scale=1):
+def contours_to_stitches(contours, scale=0.3):
     """
-    Convert contours into stitch points.
+    Convert contours into stitch paths.
+    Returns list of (x, y, command)
     """
     stitches = []
 
     for contour in contours:
+        first = True
         for point in contour:
             x, y = point[0]
-            stitches.append((int(x * scale), int(y * scale)))
+            x = int(x * scale)
+            y = int(y * scale)
 
-        # END stitch between contours
-        stitches.append(("END",))
+            if first:
+                stitches.append((x, y, "JUMP"))
+                first = False
+            else:
+                stitches.append((x, y, "STITCH"))
 
     return stitches
+

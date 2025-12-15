@@ -1,14 +1,20 @@
-from pyembroidery import EmbPattern, STITCH, END
+from pyembroidery import EmbPattern, STITCH, JUMP
 
 def write_dst(stitches, output_path):
     pattern = EmbPattern()
 
-    for stitch in stitches:
-        if stitch == ("END",):
-            pattern.add_command(END)
+    last_x, last_y = 0, 0
+
+    for x, y, cmd in stitches:
+        dx = x - last_x
+        dy = y - last_y
+
+        if cmd == "JUMP":
+            pattern.add_stitch_relative(JUMP, dx, dy)
         else:
-            x, y = stitch
-            pattern.add_stitch_absolute(STITCH, x, y)
+            pattern.add_stitch_relative(STITCH, dx, dy)
+
+        last_x, last_y = x, y
 
     pattern.end()
     pattern.write(output_path)
